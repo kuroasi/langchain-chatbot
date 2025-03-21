@@ -1,0 +1,9 @@
+langchain>=0.0.335
+langchain-openai>=0.0.2
+langchain-google-vertexai>=2.0.15
+faiss-cpu>=1.7.4
+tiktoken>=0.5.1
+python-dotenv>=1.0.0
+langchain[groq]
+gradio>=4.0.0
+langgraph>=0.0.20
