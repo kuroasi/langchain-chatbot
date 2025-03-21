@@ -39,6 +39,12 @@ def user_input_callback(message, history, model_name, template_name):
     if not os.environ.get("GROQ_API_KEY"):
         return "", history + [[message, "请先在环境变量中设置GROQ_API_KEY"]]
     
+    # 创建一个包含用户消息但AI回复为空的历史记录
+    history_with_user_message = history + [[message, None]]
+    
+    # 立即返回更新后的历史记录，显示用户消息
+    yield "", history_with_user_message
+    
     try:
         # 调用Groq模型进行对话
         response = chat_with_groq(
@@ -54,7 +60,7 @@ def user_input_callback(message, history, model_name, template_name):
         chat_state.history.append(AIMessage(content=response))
         
         # 返回空字符串给输入框，更新后的历史给聊天界面
-        return "", history + [[message, response]]
+        yield "", history + [[message, response]]
     except Exception as e:
         error_message = f"处理请求时发生错误: {str(e)}"
         print(error_message)
@@ -67,7 +73,8 @@ def clear_conversation():
     chat_state.thread_id = str(uuid.uuid4())
     chat_state.history = []
     chat_state.messages = []
-    return None, []
+    # 返回空输入和包含系统消息的历史记录
+    return None, [[None, f"✅ 对话已清除，新会话ID: {chat_state.thread_id}"]]
 
 # 创建Gradio界面
 with gr.Blocks(title="LangChain 智能聊天机器人", theme=gr.themes.Soft()) as app:
@@ -136,13 +143,15 @@ with gr.Blocks(title="LangChain 智能聊天机器人", theme=gr.themes.Soft()) 
     submit_btn.click(
         user_input_callback,
         inputs=[user_input, chatbot, model_dropdown, template_dropdown],
-        outputs=[user_input, chatbot]
+        outputs=[user_input, chatbot],
+        queue=True  # 启用队列以支持生成器函数
     )
     
     user_input.submit(
         user_input_callback,
         inputs=[user_input, chatbot, model_dropdown, template_dropdown],
-        outputs=[user_input, chatbot]
+        outputs=[user_input, chatbot],
+        queue=True  # 启用队列以支持生成器函数
     )
     
     clear_btn.click(

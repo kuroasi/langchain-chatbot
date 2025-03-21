@@ -2,6 +2,7 @@
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, END, MessagesState, StateGraph
 from langchain_core.messages import HumanMessage
+from message_trimmer import trim_messages
 
 def create_langgraph_app(model, memory=None):
     """创建LangGraph应用（仅异步版本）
@@ -19,7 +20,14 @@ def create_langgraph_app(model, memory=None):
     # 异步版本的模型调用函数
     async def call_model_async(state: MessagesState):
         try:
-            response = await model.ainvoke(state["messages"])
+            # 在调用模型前修剪消息，防止上下文窗口溢出
+            trimmed_messages = trim_messages(
+                messages=state["messages"],
+                max_messages=20,  # 保留最多20条消息
+                keep_system_message=True,  # 始终保留系统消息
+                strategy="last"  # 保留最近的消息
+            )
+            response = await model.ainvoke(trimmed_messages)
             return {"messages": response}
         except Exception as e:
             print(f"异步调用模型时出错: {e}")
