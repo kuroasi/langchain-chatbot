@@ -12,4 +12,6 @@ port = int(os.environ.get("PORT", 7860))
 
 # 启动应用
 if __name__ == "__main__":
-    gradio_app.launch(server_name="0.0.0.0", server_port=port, share=False)
+    # 在Hugging Face Spaces环境中，设置share=True以生成公共URL
+    is_spaces = os.environ.get("SPACE_ID") is not None
+    gradio_app.launch(server_name="0.0.0.0", server_port=port, share=is_spaces)
