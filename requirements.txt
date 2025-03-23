@@ -7,3 +7,5 @@ python-dotenv>=1.0.0
 langchain[groq]
 gradio>=4.0.0
 langgraph>=0.0.20
+gunicorn>=21.2.0
+requests>=2.31.0
